@@ -64,7 +64,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 
 @TeleOp(name="Basic: Omni Linear OpMode", group="Linear OpMode")
-@Disabled
 public class omniOpModeWheelsTest extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
@@ -94,10 +93,10 @@ public class omniOpModeWheelsTest extends LinearOpMode {
         // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
         // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that runs backward
         // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
-        frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
-        backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
-        frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
-        backRightDrive.setDirection(DcMotor.Direction.FORWARD);
+        frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
+        backLeftDrive.setDirection(DcMotor.Direction.FORWARD);
+        frontRightDrive.setDirection(DcMotor.Direction.REVERSE);
+        backRightDrive.setDirection(DcMotor.Direction.REVERSE);
 
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
