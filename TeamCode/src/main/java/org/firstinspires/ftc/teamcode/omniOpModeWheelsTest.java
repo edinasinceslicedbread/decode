@@ -63,7 +63,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Basic: Omni Linear OpMode", group="Linear OpMode")
+@TeleOp(name="omniWheelsTest", group="Test")
 public class omniOpModeWheelsTest extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
@@ -72,6 +72,8 @@ public class omniOpModeWheelsTest extends LinearOpMode {
     private DcMotor backLeftDrive = null;
     private DcMotor frontRightDrive = null;
     private DcMotor backRightDrive = null;
+
+    int reverseLimit = 1;
 
     @Override
     public void runOpMode() {
@@ -116,10 +118,10 @@ public class omniOpModeWheelsTest extends LinearOpMode {
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
-            double frontLeftPower  = axial + lateral + yaw;
-            double frontRightPower = axial - lateral - yaw;
-            double backLeftPower   = axial - lateral + yaw;
-            double backRightPower  = axial + lateral - yaw;
+            double frontLeftPower  = axial + lateral + yaw * reverseLimit;
+            double frontRightPower = axial - lateral - yaw * reverseLimit;
+            double backLeftPower   = axial - lateral + yaw * reverseLimit;
+            double backRightPower  = axial + lateral - yaw * reverseLimit;
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
@@ -150,7 +152,15 @@ public class omniOpModeWheelsTest extends LinearOpMode {
             frontRightPower = gamepad1.y ? 1.0 : 0.0;  // Y gamepad
             backRightPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
             */
-
+            //Variable switch to reverse movement using A button.
+            boolean aSwitchVar = true;
+            if (aSwitchVar = true){
+            if (gamepad1.a) {
+            int reverseLimit = -1;
+            }else{
+                if (gamepad1.a) {
+                    int reverseLimit = 1;
+                }}}
             // Send calculated power to wheels
             frontLeftDrive.setPower(frontLeftPower);
             frontRightDrive.setPower(frontRightPower);
