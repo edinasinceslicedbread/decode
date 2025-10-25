@@ -95,17 +95,6 @@ public class omniOpModeWheelsTest extends LinearOpMode {
         // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
         // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that runs backward
         // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
-        if (reverseLimit == 1) {
-            frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
-            backLeftDrive.setDirection(DcMotor.Direction.FORWARD);
-            frontRightDrive.setDirection(DcMotor.Direction.REVERSE);
-            backRightDrive.setDirection(DcMotor.Direction.REVERSE);
-        }else{
-            frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
-            backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
-            frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
-            backRightDrive.setDirection(DcMotor.Direction.FORWARD);
-        }
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -168,6 +157,18 @@ public class omniOpModeWheelsTest extends LinearOpMode {
                 if (gamepad1.a) {
                     int reverseLimit = 1;
                 }}}
+            //Make reverseLimit control the direction of the Wheels. 
+            if (reverseLimit == 1) {
+                frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
+                backLeftDrive.setDirection(DcMotor.Direction.FORWARD);
+                frontRightDrive.setDirection(DcMotor.Direction.REVERSE);
+                backRightDrive.setDirection(DcMotor.Direction.REVERSE);
+            }else{
+                frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+                backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+                frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
+                backRightDrive.setDirection(DcMotor.Direction.FORWARD);
+            }
             // Send calculated power to wheels
             frontLeftDrive.setPower(frontLeftPower);
             frontRightDrive.setPower(frontRightPower);
