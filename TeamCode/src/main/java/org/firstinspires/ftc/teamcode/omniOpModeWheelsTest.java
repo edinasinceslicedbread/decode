@@ -63,7 +63,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="omniWheelsTest", group="Test")
+@TeleOp(name="omniWheelsTest10/25", group="Test")
 public class omniOpModeWheelsTest extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
@@ -157,17 +157,17 @@ public class omniOpModeWheelsTest extends LinearOpMode {
                 if (gamepad1.a) {
                     int reverseLimit = 1;
                 }}}
-            //Make reverseLimit control the direction of the Wheels. 
+            //Make reverseLimit control the direction of the Wheels.
             if (reverseLimit == 1) {
-                frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
-                backLeftDrive.setDirection(DcMotor.Direction.FORWARD);
-                frontRightDrive.setDirection(DcMotor.Direction.REVERSE);
-                backRightDrive.setDirection(DcMotor.Direction.REVERSE);
-            }else{
                 frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
                 backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
-                frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
+                frontRightDrive.setDirection(DcMotor.Direction.REVERSE);
                 backRightDrive.setDirection(DcMotor.Direction.FORWARD);
+            }else{
+                frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
+                backLeftDrive.setDirection(DcMotor.Direction.FORWARD);
+                frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
+                backRightDrive.setDirection(DcMotor.Direction.REVERSE);
             }
             // Send calculated power to wheels
             frontLeftDrive.setPower(frontLeftPower);
@@ -179,7 +179,6 @@ public class omniOpModeWheelsTest extends LinearOpMode {
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
-            telemetry.addData("Back  left/Right", "%4.2f, %4.2f", reverseLimit, aSwitchVar);
             telemetry.update();
         }
     }}
