@@ -41,7 +41,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
@@ -59,9 +58,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * we will also need to adjust the "PIDF" coefficients with some that are a better fit for our application.
  */
 
-@TeleOp(name = "StarterBotTeleop", group = "StarterBot")
+@TeleOp(name = "ShotTestingWithMixedControls(Jacob)", group = "StarterBot")
 //@Disabled
-public class goBuildaTeleOpStrippedToMotorAndFeeder extends OpMode {
+public class goBuildaTeleOpTestingJacob extends OpMode {
     final double FEED_TIME_SECONDS = 5.20; //The feeder servos run this long when a shot is requested.
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
     final double FULL_SPEED = 1.0;
@@ -76,18 +75,12 @@ public class goBuildaTeleOpStrippedToMotorAndFeeder extends OpMode {
     final double LAUNCHER_MIN_VELOCITY = 1075;
 
     // Declare OpMode members.
-
     private DcMotorEx launcher = null;
     private CRServo leftFeeder = null;
     private CRServo rightFeeder = null;
-    private Servo scoopServo = null;
-    private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor frontLeftDrive = null;
-    private DcMotor backLeftDrive = null;
-    private DcMotor frontRightDrive = null;
-    private DcMotor backRightDrive = null;
+
     ElapsedTime feederTimer = new ElapsedTime();
-    double max;
+
     /*
      * TECH TIP: State Machines
      * We use a "state machine" to control our launcher motor and feeder servos in this program.
@@ -113,6 +106,7 @@ public class goBuildaTeleOpStrippedToMotorAndFeeder extends OpMode {
 
     private LaunchState launchState;
 
+    // Setup a variable for each drive wheel to save power level for telemetry
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -126,14 +120,10 @@ public class goBuildaTeleOpStrippedToMotorAndFeeder extends OpMode {
          * to 'get' must correspond to the names assigned during the robot configuration
          * step.
          */
+
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
         rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
-        frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
-        backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
-        frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
-        backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
-        scoopServo = hardwareMap.get(Servo.class,"scoopServo");
 
         /*
          * To drive forward, most robots need the motor on one side to be reversed,
@@ -142,6 +132,8 @@ public class goBuildaTeleOpStrippedToMotorAndFeeder extends OpMode {
          * Note: The settings here assume direct drive on left and right wheels. Gear
          * Reduction or 90 Deg drives may require direction flips
          */
+
+
         /*
          * Here we set our launcher to the RUN_USING_ENCODER runmode.
          * If you notice that you have no control over the velocity of the motor, it just jumps
@@ -156,6 +148,7 @@ public class goBuildaTeleOpStrippedToMotorAndFeeder extends OpMode {
          * slow down much faster when it is coasting. This creates a much more controllable
          * drivetrain. As the robot stops much quicker.
          */
+
         launcher.setZeroPowerBehavior(BRAKE);
 
         /*
@@ -164,7 +157,7 @@ public class goBuildaTeleOpStrippedToMotorAndFeeder extends OpMode {
         leftFeeder.setPower(STOP_SPEED);
         rightFeeder.setPower(STOP_SPEED);
 
-        launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(6, 0, 0, 100));
+        launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 15));
 
         /*
          * Much like our drivetrain motors, we set the left feeder servo to reverse so that they
@@ -206,29 +199,6 @@ public class goBuildaTeleOpStrippedToMotorAndFeeder extends OpMode {
          * both motors work to rotate the robot. Combinations of these inputs can be used to create
          * more complex maneuvers.
          */
-        double axial = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
-        double lateral = gamepad1.left_stick_x;
-        double yaw = gamepad1.right_stick_x;
-
-        // Combine the joystick requests for each axis-motion to determine each wheel's power.
-        // Set up a variable for each drive wheel to save the power level for telemetry.
-        double frontLeftPower  = axial + lateral + yaw;
-        double frontRightPower = axial - lateral - yaw;
-        double backLeftPower   = axial - lateral + yaw;
-        double backRightPower  = axial + lateral - yaw;
-
-        // Normalize the values so no wheel power exceeds 100%
-        // This ensures that the robot maintains the desired motion.
-        max = Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower));
-        max = Math.max(max, Math.abs(backLeftPower));
-        max = Math.max(max, Math.abs(backRightPower));
-
-        if (max > 1.0) {
-            frontLeftPower  /= max;
-            frontRightPower /= max;
-            backLeftPower   /= max;
-            backRightPower  /= max;
-        }
 
         /*
          * Here we give the user control of the speed of the launcher motor without automatically
@@ -244,20 +214,18 @@ public class goBuildaTeleOpStrippedToMotorAndFeeder extends OpMode {
          * Now we call our "Launch" function.
          */
         launch(gamepad1.rightBumperWasPressed());
+if(gamepad1.right_bumper){
+    leftFeeder.setPower(FULL_SPEED);
+    rightFeeder.setPower(FULL_SPEED);
+}
+if(gamepad1.left_bumper){
+    leftFeeder.setPower(STOP_SPEED);
+    rightFeeder.setPower(STOP_SPEED);
+}
 
         /*
          * Show the state and motor powers
          */
-        frontLeftDrive.setPower(frontLeftPower);
-        frontRightDrive.setPower(frontRightPower);
-        backLeftDrive.setPower(backLeftPower);
-        backRightDrive.setPower(backRightPower);
-
-        // Show the elapsed game time and wheel power.
-        telemetry.addData("Status", "Run Time: " + runtime.toString());
-        telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
-        telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
-        telemetry.update();
         telemetry.addData("State", launchState);
         telemetry.addData("motorSpeed", launcher.getVelocity());
 
@@ -271,6 +239,7 @@ public class goBuildaTeleOpStrippedToMotorAndFeeder extends OpMode {
     }
 
 
+
     void launch(boolean shotRequested) {
         switch (launchState) {
             case IDLE:
@@ -282,6 +251,7 @@ public class goBuildaTeleOpStrippedToMotorAndFeeder extends OpMode {
                 launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
                 if (LAUNCHER_MIN_VELOCITY > launcher.getVelocity()) {
                     launchState = LaunchState.LAUNCH;
+
                 }
                 break;
             case LAUNCH:
