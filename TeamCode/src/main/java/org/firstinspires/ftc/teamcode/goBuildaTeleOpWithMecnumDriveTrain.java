@@ -81,6 +81,7 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
     private CRServo leftFeeder = null;
     private CRServo rightFeeder = null;
     private Servo scoopServo = null;
+    private CRServo beaterBar = null;
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor frontLeftDrive = null;
     private DcMotor backLeftDrive = null;
@@ -89,6 +90,8 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
     ElapsedTime feederTimer = new ElapsedTime();
     double max;
 
+    boolean scoopSwitch = false;
+    boolean beaterSwitch = false;
     /*
      * TECH TIP: State Machines
      * We use a "state machine" to control our launcher motor and feeder servos in this program.
@@ -135,6 +138,7 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
         frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
         backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
         scoopServo = hardwareMap.get(Servo.class,"scoopServo");
+        beaterBar = hardwareMap.get(CRServo.class,"beaterBar");
 
         frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
@@ -248,6 +252,26 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
          */
         launch(gamepad1.rightBumperWasPressed());
 
+        if (!scoopSwitch) {
+            if (gamepad1.a) {
+                scoopServo.setPosition(0.4);
+                scoopSwitch = true;
+            }
+        } else if (scoopSwitch) { // stop flywheel
+            if (gamepad1.a){
+            scoopServo.setPosition(0);
+            scoopSwitch = false;
+        }}
+
+        if(!beaterSwitch){
+            if(gamepad1.x) {
+                beaterBar.setPower(1);
+                beaterSwitch = true;
+            }
+        } else if (beaterSwitch) {
+    beaterBar.setPower(0);
+    beaterSwitch = false;
+        }
         /*
          * Show the state and motor powers
          */

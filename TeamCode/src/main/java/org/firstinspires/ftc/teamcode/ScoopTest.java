@@ -241,7 +241,7 @@ public class ScoopTest extends OpMode {
         }
 
         if (gamepad1.a) {
-            scoopServo.setPosition(0.5);
+            scoopServo.setPosition(0.4);
         } else if (gamepad1.x) { // stop flywheel
             scoopServo.setPosition(0);
         }
