@@ -62,7 +62,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @TeleOp(name = "StarterBotTeleop", group = "StarterBot")
 //@Disabled
 public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
-    final double FEED_TIME_SECONDS = 5.20; //The feeder servos run this long when a shot is requested.
+    final double FEED_TIME_SECONDS = 1.20; //The feeder servos run this long when a shot is requested.
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
     final double FULL_SPEED = 1.0;
     boolean spinUpTest = false;
@@ -72,8 +72,8 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
      * velocity. Here we are setting the target, and minimum velocity that the launcher should run
      * at. The minimum velocity is a threshold for determining when to fire.
      */
-    final double LAUNCHER_TARGET_VELOCITY = 1125;
-    final double LAUNCHER_MIN_VELOCITY = 1000;
+    final double LAUNCHER_TARGET_VELOCITY = 1325;
+    final double LAUNCHER_MIN_VELOCITY = 1275;
 
     // Declare OpMode members.
 
@@ -92,6 +92,9 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
 
     boolean scoopSwitch = false;
     boolean beaterSwitch = false;
+    boolean prevA;
+    boolean prevX;
+
     /*
      * TECH TIP: State Machines
      * We use a "state machine" to control our launcher motor and feeder servos in this program.
@@ -137,8 +140,8 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
         backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
         frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
         backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
-        scoopServo = hardwareMap.get(Servo.class,"scoopServo");
-        beaterBar = hardwareMap.get(CRServo.class,"beaterBar");
+        scoopServo = hardwareMap.get(Servo.class, "scoopServo");
+        beaterBar = hardwareMap.get(CRServo.class, "beaterBar");
 
         frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
@@ -224,10 +227,10 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
 
         // Combine the joystick requests for each axis-motion to determine each wheel's power.
         // Set up a variable for each drive wheel to save the power level for telemetry.
-        double frontLeftPower  = axial + lateral + yaw;
+        double frontLeftPower = axial + lateral + yaw;
         double frontRightPower = axial - lateral - yaw;
-        double backLeftPower   = axial - lateral + yaw;
-        double backRightPower  = axial + lateral - yaw;
+        double backLeftPower = axial - lateral + yaw;
+        double backRightPower = axial + lateral - yaw;
 
         // Normalize the values so no wheel power exceeds 100%
         // This ensures that the robot maintains the desired motion.
@@ -236,10 +239,10 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
         max = Math.max(max, Math.abs(backRightPower));
 
         if (max > 1.0) {
-            frontLeftPower  /= max;
+            frontLeftPower /= max;
             frontRightPower /= max;
-            backLeftPower   /= max;
-            backRightPower  /= max;
+            backLeftPower /= max;
+            backRightPower /= max;
         }
 
         /*
@@ -253,25 +256,29 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
         launch(gamepad1.rightBumperWasPressed());
 
         if (!scoopSwitch) {
-            if (gamepad1.a) {
+            if (gamepad1.a && prevA) {
                 scoopServo.setPosition(0.4);
                 scoopSwitch = true;
             }
         } else if (scoopSwitch) { // stop flywheel
-            if (gamepad1.a){
-            scoopServo.setPosition(0);
-            scoopSwitch = false;
-        }}
-
-        if(!beaterSwitch){
-            if(gamepad1.x) {
+            if (gamepad1.a && prevA) {
+                scoopServo.setPosition(0);
+                scoopSwitch = false;
+            }
+        }
+        prevA = gamepad1.a;
+        if (!beaterSwitch) {
+            if (gamepad1.x && prevX) {
                 beaterBar.setPower(1);
                 beaterSwitch = true;
             }
         } else if (beaterSwitch) {
-    beaterBar.setPower(0);
-    beaterSwitch = false;
+            if (gamepad1.x && prevX) {
+                beaterBar.setPower(0);
+                beaterSwitch = false;
+            }
         }
+        prevX = gamepad1.x;
         /*
          * Show the state and motor powers
          */
@@ -284,9 +291,10 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
         telemetry.addData("Status", "Run Time: " + runtime.toString());
         telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
         telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
-        telemetry.addData("SpinUp?",spinUpTest);
+        telemetry.addData("SpinUp?", spinUpTest);
         telemetry.addData("State", launchState);
         telemetry.addData("motorSpeed", launcher.getVelocity());
+        telemetry.addData("beaterSwitch",beaterSwitch);
         telemetry.update();
     }
 
@@ -307,7 +315,7 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
                 break;
             case SPIN_UP:
                 launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
-                if (LAUNCHER_MIN_VELOCITY > launcher.getVelocity()) {
+                if (LAUNCHER_MIN_VELOCITY < launcher.getVelocity()) {
                     launchState = LaunchState.LAUNCH;
                     spinUpTest = true;
                 }
@@ -321,6 +329,7 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
             case LAUNCHING:
                 if (feederTimer.seconds() > FEED_TIME_SECONDS) {
                     launchState = LaunchState.IDLE;
+                    launcher.setPower(STOP_SPEED);
                     leftFeeder.setPower(STOP_SPEED);
                     rightFeeder.setPower(STOP_SPEED);
                 }
