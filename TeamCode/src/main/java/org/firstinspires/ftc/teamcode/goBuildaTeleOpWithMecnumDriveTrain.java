@@ -95,6 +95,7 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
     boolean prevA;
     boolean prevX;
 
+    boolean beaterTest;
     /*
      * TECH TIP: State Machines
      * We use a "state machine" to control our launcher motor and feeder servos in this program.
@@ -172,14 +173,14 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
          * drivetrain. As the robot stops much quicker.
          */
         launcher.setZeroPowerBehavior(BRAKE);
-
+        scoopServo.setPosition(0);
         /*
          * set Feeders to an initial value to initialize the servo controller
          */
         leftFeeder.setPower(STOP_SPEED);
         rightFeeder.setPower(STOP_SPEED);
 
-        launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 10));
+        launcher.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 11));
 
         /*
          * Much like our drivetrain motors, we set the left feeder servo to reverse so that they
@@ -256,24 +257,24 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
         launch(gamepad1.rightBumperWasPressed());
 
         if (!scoopSwitch) {
-            if (gamepad1.a && prevA) {
-                scoopServo.setPosition(0.4);
+            if (gamepad1.a && !prevA) {
+                scoopServo.setPosition(0.2);
                 scoopSwitch = true;
-            }
-        } else if (scoopSwitch) { // stop flywheel
-            if (gamepad1.a && prevA) {
+            }       } else if (scoopSwitch) {
+            if (gamepad1.a && !prevA) {
                 scoopServo.setPosition(0);
                 scoopSwitch = false;
             }
         }
         prevA = gamepad1.a;
         if (!beaterSwitch) {
-            if (gamepad1.x && prevX) {
+            if (gamepad1.x && !prevX) {
                 beaterBar.setPower(1);
+                beaterTest = true;
                 beaterSwitch = true;
             }
         } else if (beaterSwitch) {
-            if (gamepad1.x && prevX) {
+            if (gamepad1.x && !prevX) {
                 beaterBar.setPower(0);
                 beaterSwitch = false;
             }
@@ -292,6 +293,7 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
         telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
         telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
         telemetry.addData("SpinUp?", spinUpTest);
+        telemetry.addData("BeaterCodeWorks?", beaterTest);
         telemetry.addData("State", launchState);
         telemetry.addData("motorSpeed", launcher.getVelocity());
         telemetry.addData("beaterSwitch",beaterSwitch);
