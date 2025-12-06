@@ -34,12 +34,11 @@ package org.firstinspires.ftc.teamcode;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -59,9 +58,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * we will also need to adjust the "PIDF" coefficients with some that are a better fit for our application.
  */
 
-@TeleOp(name = "StarterBotTeleop", group = "StarterBot")
+@Autonomous(name = "Auto Mode backwards", group = "StarterBot")
 //@Disabled
-public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
+public class AutoOpModeBackwards extends OpMode {
     final double FEED_TIME_SECONDS = 1.20; //The feeder servos run this long when a shot is requested.
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
     final double FULL_SPEED = 1.0;
@@ -80,8 +79,8 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
     private DcMotorEx launcher = null;
     private CRServo leftFeeder = null;
     private CRServo rightFeeder = null;
-    private CRServo elevatorServoOne = null;
-    private CRServo elevatorServoTwo = null;
+    private Servo scoopServo = null;
+    private CRServo beaterBar = null;
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor frontLeftDrive = null;
     private DcMotor backLeftDrive = null;
@@ -90,13 +89,11 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
     ElapsedTime feederTimer = new ElapsedTime();
     double max;
 
-
-    boolean elevatorSwitch = false;
+    boolean scoopSwitch = false;
+    boolean beaterSwitch = false;
+    boolean prevA;
     boolean prevX;
 
-    boolean beaterTest;
-    float reverseServo;
-    boolean reverseSwitch = false;
     /*
      * TECH TIP: State Machines
      * We use a "state machine" to control our launcher motor and feeder servos in this program.
@@ -142,8 +139,8 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
         backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
         frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
         backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
-        elevatorServoOne = hardwareMap.get(CRServo.class, "elevatorServoOne");
-       elevatorServoTwo = hardwareMap.get(CRServo.class, "elevatorServoTwo");
+        scoopServo = hardwareMap.get(Servo.class, "scoopServo");
+        beaterBar = hardwareMap.get(CRServo.class, "beaterBar");
 
         frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
@@ -151,8 +148,7 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
         rightFeeder.setDirection(CRServo.Direction.REVERSE);
         rightFeeder.setDirection(CRServo.Direction.REVERSE);
-        elevatorServoOne.setDirection(CRServo.Direction.REVERSE);
-        elevatorServoTwo.setDirection(CRServo.Direction.FORWARD);
+
         /*
          * To drive forward, most robots need the motor on one side to be reversed,
          * because the axles point in opposite directions. Pushing the left stick forward
@@ -175,13 +171,14 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
          * drivetrain. As the robot stops much quicker.
          */
         launcher.setZeroPowerBehavior(BRAKE);
+
         /*
          * set Feeders to an initial value to initialize the servo controller
          */
         leftFeeder.setPower(STOP_SPEED);
         rightFeeder.setPower(STOP_SPEED);
 
-        launcher.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 11));
+        launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 10));
 
         /*
          * Much like our drivetrain motors, we set the left feeder servo to reverse so that they
@@ -207,6 +204,10 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
      */
     @Override
     public void start() {
+        backLeftDrive.setPower(-0.25);
+        backRightDrive.setPower(-0.25);
+        frontLeftDrive.setPower(-0.25);
+        frontRightDrive.setPower(-0.25);
     }
 
     /*
@@ -214,96 +215,14 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
      */
     @Override
     public void loop() {
-        /*
-         * Here we call a function called arcadeDrive. The arcadeDrive function takes the input from
-         * the joysticks, and applies power to the left and right drive motor to move the robot
-         * as requested by the driver. "arcade" refers to the control style we're using here.
-         * Much like a classic arcade game, when you move the left joystick forward both motors
-         * work to drive the robot forward, and when you move the right joystick left and right
-         * both motors work to rotate the robot. Combinations of these inputs can be used to create
-         * more complex maneuvers.
-         */
-        double axial = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
-        double lateral = gamepad1.left_stick_x;
-        double yaw = gamepad1.right_stick_x;
+       if (feederTimer.seconds() > 3.0) {
+           backLeftDrive.setPower(0.0);
+           backRightDrive.setPower(0.0);
+           frontLeftDrive.setPower(0.0);
+           frontRightDrive.setPower(0.0);
 
-        // Combine the joystick requests for each axis-motion to determine each wheel's power.
-        // Set up a variable for each drive wheel to save the power level for telemetry.
-        double frontLeftPower = axial + lateral + yaw;
-        double frontRightPower = axial - lateral - yaw;
-        double backLeftPower = axial - lateral + yaw;
-        double backRightPower = axial + lateral - yaw;
-
-        // Normalize the values so no wheel power exceeds 100%
-        // This ensures that the robot maintains the desired motion.
-        max = Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower));
-        max = Math.max(max, Math.abs(backLeftPower));
-        max = Math.max(max, Math.abs(backRightPower));
-
-        if (max > 1.0) {
-            frontLeftPower /= max;
-            frontRightPower /= max;
-            backLeftPower /= max;
-            backRightPower /= max;
-        }
-
-        /*
-         * Here we give the user control of the speed of the launcher motor without automatically
-         * queuing a shot.
-         */
-        if(!reverseSwitch){
-        if (gamepad1.back) {
-        reverseServo = -1;
-        reverseSwitch = true;
-            }
-        }else if (reverseSwitch) {
-            if (gamepad1.back) {
-                reverseServo = 1;
-                reverseSwitch = false;
-            }
-        }
-        /*
-         * Now we call our "Launch" function.
-         */
-        launch(gamepad1.rightBumperWasPressed());
-
-        if (!elevatorSwitch) {
-            if (gamepad1.x && !prevX) {
-                elevatorServoTwo.setPower(1 * reverseServo);
-                elevatorServoOne.setPower(1 * reverseServo);
-                beaterTest = true;
-                elevatorSwitch = true;
-            }
-        } else if (elevatorSwitch) {
-            if (gamepad1.x && !prevX) {
-                elevatorServoTwo.setPower(0);
-                elevatorServoOne.setPower(0);
-                elevatorSwitch = false;
-            }
-        }
-
-            prevX = gamepad1.x;
-
-        /*
-         * Show the state and motor powers
-         */
-        frontLeftDrive.setPower(frontLeftPower);
-        frontRightDrive.setPower(frontRightPower);
-        backLeftDrive.setPower(backLeftPower);
-        backRightDrive.setPower(backRightPower);
-
-        // Show the elapsed game time and wheel power.
-        telemetry.addData("Status", "Run Time: " + runtime.toString());
-        telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
-        telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
-        telemetry.addData("SpinUp?", spinUpTest);
-        telemetry.addData("BeaterCodeWorks?", beaterTest);
-        telemetry.addData("State", launchState);
-        telemetry.addData("motorSpeed", launcher.getVelocity());
-        telemetry.addData("elevatorSwitch",elevatorSwitch);
-        telemetry.update();
+       }
     }
-
     /*
      * Code to run ONCE after the driver hits STOP
      */
