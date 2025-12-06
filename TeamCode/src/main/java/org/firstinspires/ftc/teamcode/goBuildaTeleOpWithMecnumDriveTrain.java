@@ -82,6 +82,7 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
     private CRServo rightFeeder = null;
     private CRServo elevatorServoOne = null;
     private CRServo elevatorServoTwo = null;
+    private CRServo beaterBar =null;
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor frontLeftDrive = null;
     private DcMotor backLeftDrive = null;
@@ -93,9 +94,10 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
 
     boolean elevatorSwitch = false;
     boolean prevX;
+    boolean prevBack;
 
     boolean beaterTest;
-    float reverseServo;
+    float reverseServo = 1;
     boolean reverseSwitch = false;
     /*
      * TECH TIP: State Machines
@@ -144,6 +146,7 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
         backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
         elevatorServoOne = hardwareMap.get(CRServo.class, "elevatorServoOne");
        elevatorServoTwo = hardwareMap.get(CRServo.class, "elevatorServoTwo");
+        beaterBar = hardwareMap.get(CRServo.class, "beaterBar");
 
         frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
@@ -153,6 +156,7 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
         rightFeeder.setDirection(CRServo.Direction.REVERSE);
         elevatorServoOne.setDirection(CRServo.Direction.REVERSE);
         elevatorServoTwo.setDirection(CRServo.Direction.FORWARD);
+        beaterBar.setDirection(CRServo.Direction.REVERSE);
         /*
          * To drive forward, most robots need the motor on one side to be reversed,
          * because the axles point in opposite directions. Pushing the left stick forward
@@ -252,16 +256,17 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
          * queuing a shot.
          */
         if(!reverseSwitch){
-        if (gamepad1.back) {
+        if (gamepad1.back && prevBack) {
         reverseServo = -1;
         reverseSwitch = true;
             }
         }else if (reverseSwitch) {
-            if (gamepad1.back) {
+            if (gamepad1.back && prevBack) {
                 reverseServo = 1;
                 reverseSwitch = false;
             }
         }
+        prevBack = gamepad1.back;
         /*
          * Now we call our "Launch" function.
          */
@@ -271,13 +276,14 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
             if (gamepad1.x && !prevX) {
                 elevatorServoTwo.setPower(1 * reverseServo);
                 elevatorServoOne.setPower(1 * reverseServo);
-                beaterTest = true;
+                beaterBar.setPower(1);
                 elevatorSwitch = true;
             }
         } else if (elevatorSwitch) {
             if (gamepad1.x && !prevX) {
                 elevatorServoTwo.setPower(0);
                 elevatorServoOne.setPower(0);
+                beaterBar.setPower(0);
                 elevatorSwitch = false;
             }
         }
