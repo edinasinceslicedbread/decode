@@ -80,6 +80,8 @@ public class AutoOpMode extends OpMode {
     private DcMotorEx launcher = null;
     private CRServo leftFeeder = null;
     private CRServo rightFeeder = null;
+    private CRServo elevatorServoOne = null;
+    private CRServo elevatorServoTwo = null;
     private Servo scoopServo = null;
     private CRServo beaterBar = null;
     private ElapsedTime runtime = new ElapsedTime();
@@ -90,10 +92,12 @@ public class AutoOpMode extends OpMode {
     ElapsedTime feederTimer = new ElapsedTime();
     double max;
 
-    boolean scoopSwitch = false;
-    boolean beaterSwitch = false;
-    boolean prevA;
+    boolean elevatorSwitch = false;
     boolean prevX;
+
+    boolean beaterTest;
+    float reverseServo;
+    boolean reverseSwitch = false;
 
     /*
      * TECH TIP: State Machines
@@ -111,7 +115,14 @@ public class AutoOpMode extends OpMode {
      * We can use higher level code to cycle through these states. But this allows us to write
      * functions and autonomous routines in a way that avoids loops within loops, and "waits".
      */
-    private enum LaunchState {
+    private enum LaunchState{
+        IDLE,
+        ELEVATE,
+        SPIN_UP,
+        LAUNCH,
+        LAUNCHING,
+    }
+    private enum LaunchState2{
         IDLE,
         SPIN_UP,
         LAUNCH,
@@ -119,6 +130,7 @@ public class AutoOpMode extends OpMode {
     }
 
     private LaunchState launchState;
+    private LaunchState launchState2;
 
 
     /*
@@ -205,10 +217,10 @@ public class AutoOpMode extends OpMode {
      */
     @Override
     public void start() {
-        backLeftDrive.setPower(0.25);
-        backRightDrive.setPower(0.25);
-        frontLeftDrive.setPower(0.25);
-        frontRightDrive.setPower(0.25);
+        backLeftDrive.setPower(-0.50);
+        backRightDrive.setPower(-0.50);
+        frontLeftDrive.setPower(-0.50);
+        frontRightDrive.setPower(-0.50);
     }
 
     /*
@@ -216,26 +228,60 @@ public class AutoOpMode extends OpMode {
      */
     @Override
     public void loop() {
-       if (feederTimer.seconds() > 3.0) {
-           backLeftDrive.setPower(0.0);
-           backRightDrive.setPower(0.0);
-           frontLeftDrive.setPower(0.0);
-           frontRightDrive.setPower(0.0);
+        switch (launchState2) {
+            case IDLE:
+                if (feederTimer.seconds() > 3.0) {
+                    backLeftDrive.setPower(0.25);
+                    backRightDrive.setPower(-0.25);
+                    frontLeftDrive.setPower(0.25);
+                    frontRightDrive.setPower(-0.25);
+                }
+                break;
+            case SPIN_UP:
+                launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
+                if (LAUNCHER_MIN_VELOCITY < launcher.getVelocity()) {
+                    launchState = goBuildaTeleOpWithMecnumDriveTrain.LaunchState.LAUNCH;
+                    spinUpTest = true;
+                }
+                break;
+            case LAUNCH:
+                leftFeeder.setPower(FULL_SPEED);
+                rightFeeder.setPower(FULL_SPEED);
+                feederTimer.reset();
+                launchState = goBuildaTeleOpWithMecnumDriveTrain.LaunchState.LAUNCHING;
+                break;
+            case LAUNCHING:
+                if (feederTimer.seconds() > FEED_TIME_SECONDS) {
+                    launchState = goBuildaTeleOpWithMecnumDriveTrain.LaunchState.IDLE;
+                    launcher.setPower(STOP_SPEED);
+                    leftFeeder.setPower(STOP_SPEED);
+                    rightFeeder.setPower(STOP_SPEED);
+                }
+                break;
        }
-    }
+
     /*
      * Code to run ONCE after the driver hits STOP
      */
     @Override
     public void stop() {
+        backLeftDrive.setPower(0.0);
+        backRightDrive.setPower(0.0);
+        frontLeftDrive.setPower(0.0);
+        frontRightDrive.setPower(0.0);
     }
 
 
     void launch(boolean shotRequested) {
         switch (launchState) {
             case IDLE:
-                if (shotRequested) {
                     launchState = LaunchState.SPIN_UP;
+                break;
+            case ELEVATE:
+                    elevatorServoTwo.setPower(1 * reverseServo);
+                    elevatorServoOne.setPower(1 * reverseServo);
+                    beaterTest = true;
+                    elevatorSwitch = true;
                 }
                 break;
             case SPIN_UP:
@@ -261,4 +307,4 @@ public class AutoOpMode extends OpMode {
                 break;
         }
     }
-}
+}}
