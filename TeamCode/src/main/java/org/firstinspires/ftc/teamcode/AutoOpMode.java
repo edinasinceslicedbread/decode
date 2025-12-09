@@ -115,22 +115,15 @@ public class AutoOpMode extends OpMode {
      * We can use higher level code to cycle through these states. But this allows us to write
      * functions and autonomous routines in a way that avoids loops within loops, and "waits".
      */
-    private enum LaunchState{
+    private enum LaunchState {
         IDLE,
         ELEVATE,
         SPIN_UP,
         LAUNCH,
         LAUNCHING,
     }
-    private enum LaunchState2{
-        IDLE,
-        SPIN_UP,
-        LAUNCH,
-        LAUNCHING,
-    }
 
     private LaunchState launchState;
-    private LaunchState launchState2;
 
 
     /*
@@ -228,7 +221,7 @@ public class AutoOpMode extends OpMode {
      */
     @Override
     public void loop() {
-        switch (launchState2) {
+        switch (launchState) {
             case IDLE:
                 if (feederTimer.seconds() > 3.0) {
                     backLeftDrive.setPower(0.25);
@@ -236,7 +229,14 @@ public class AutoOpMode extends OpMode {
                     frontLeftDrive.setPower(0.25);
                     frontRightDrive.setPower(-0.25);
                 }
+
+            case ELEVATE:
+                elevatorServoTwo.setPower(1 * reverseServo);
+                elevatorServoOne.setPower(1 * reverseServo);
+                beaterTest = true;
+                elevatorSwitch = true;
                 break;
+
             case SPIN_UP:
                 launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
                 if (LAUNCHER_MIN_VELOCITY < launcher.getVelocity()) {
@@ -258,53 +258,16 @@ public class AutoOpMode extends OpMode {
                     rightFeeder.setPower(STOP_SPEED);
                 }
                 break;
-       }
+        }
 
-    /*
-     * Code to run ONCE after the driver hits STOP
-     */
-    @Override
-    public void stop() {
-        backLeftDrive.setPower(0.0);
-        backRightDrive.setPower(0.0);
-        frontLeftDrive.setPower(0.0);
-        frontRightDrive.setPower(0.0);
-    }
-
-
-    void launch(boolean shotRequested) {
-        switch (launchState) {
-            case IDLE:
-                    launchState = LaunchState.SPIN_UP;
-                break;
-            case ELEVATE:
-                    elevatorServoTwo.setPower(1 * reverseServo);
-                    elevatorServoOne.setPower(1 * reverseServo);
-                    beaterTest = true;
-                    elevatorSwitch = true;
-                }
-                break;
-            case SPIN_UP:
-                launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
-                if (LAUNCHER_MIN_VELOCITY < launcher.getVelocity()) {
-                    launchState = LaunchState.LAUNCH;
-                    spinUpTest = true;
-                }
-                break;
-            case LAUNCH:
-                leftFeeder.setPower(FULL_SPEED);
-                rightFeeder.setPower(FULL_SPEED);
-                feederTimer.reset();
-                launchState = LaunchState.LAUNCHING;
-                break;
-            case LAUNCHING:
-                if (feederTimer.seconds() > FEED_TIME_SECONDS) {
-                    launchState = LaunchState.IDLE;
-                    launcher.setPower(STOP_SPEED);
-                    leftFeeder.setPower(STOP_SPEED);
-                    rightFeeder.setPower(STOP_SPEED);
-                }
-                break;
+        /*
+         * Code to run ONCE after the driver hits STOP
+         */
+        @Override
+        public void stop () {
+            backLeftDrive.setPower(0.0);
+            backRightDrive.setPower(0.0);
+            frontLeftDrive.setPower(0.0);
+            frontRightDrive.setPower(0.0);
         }
     }
-}}
