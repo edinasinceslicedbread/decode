@@ -36,7 +36,7 @@ import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+//import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -240,7 +240,7 @@ public class AutoOpMode extends OpMode {
             case SPIN_UP:
                 launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
                 if (LAUNCHER_MIN_VELOCITY < launcher.getVelocity()) {
-                    launchState = goBuildaTeleOpWithMecnumDriveTrain.LaunchState.LAUNCH;
+                    launchState = launchState.LAUNCH;
                     spinUpTest = true;
                 }
                 break;
@@ -248,11 +248,11 @@ public class AutoOpMode extends OpMode {
                 leftFeeder.setPower(FULL_SPEED);
                 rightFeeder.setPower(FULL_SPEED);
                 feederTimer.reset();
-                launchState = goBuildaTeleOpWithMecnumDriveTrain.LaunchState.LAUNCHING;
+                launchState = LaunchState.LAUNCHING;
                 break;
             case LAUNCHING:
                 if (feederTimer.seconds() > FEED_TIME_SECONDS) {
-                    launchState = goBuildaTeleOpWithMecnumDriveTrain.LaunchState.IDLE;
+                    launchState = LaunchState.IDLE;
                     launcher.setPower(STOP_SPEED);
                     leftFeeder.setPower(STOP_SPEED);
                     rightFeeder.setPower(STOP_SPEED);
@@ -263,11 +263,13 @@ public class AutoOpMode extends OpMode {
         /*
          * Code to run ONCE after the driver hits STOP
          */
-        @Override
-        public void stop () {
-            backLeftDrive.setPower(0.0);
-            backRightDrive.setPower(0.0);
-            frontLeftDrive.setPower(0.0);
-            frontRightDrive.setPower(0.0);
-        }
+
+       // @Override
+        //public void stop() {
+          //  backLeftDrive.setPower(0.0);
+            //backRightDrive.setPower(0.0);
+            //frontLeftDrive.setPower(0.0);
+            //frontRightDrive.setPower(0.0);
+        //}
     }
+}
