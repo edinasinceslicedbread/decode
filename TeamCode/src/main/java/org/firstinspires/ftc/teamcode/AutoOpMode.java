@@ -82,8 +82,6 @@ public class AutoOpMode extends OpMode {
     private CRServo rightFeeder = null;
     private CRServo elevatorServoOne = null;
     private CRServo elevatorServoTwo = null;
-    private Servo scoopServo = null;
-    private CRServo beaterBar = null;
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor frontLeftDrive = null;
     private DcMotor backLeftDrive = null;
@@ -94,8 +92,7 @@ public class AutoOpMode extends OpMode {
 
     boolean elevatorSwitch = false;
     boolean prevX;
-
-    boolean beaterTest;
+    
     float reverseServo;
     boolean reverseSwitch = false;
 
@@ -145,8 +142,6 @@ public class AutoOpMode extends OpMode {
         backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
         frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
         backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
-        scoopServo = hardwareMap.get(Servo.class, "scoopServo");
-        beaterBar = hardwareMap.get(CRServo.class, "beaterBar");
 
         frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
@@ -235,7 +230,6 @@ public class AutoOpMode extends OpMode {
             case ELEVATE:
                 elevatorServoTwo.setPower(1.0);
                 elevatorServoOne.setPower(1.0);
-                beaterTest = true;
                 elevatorSwitch = true;
                 launchState = LaunchState.SPIN_UP;
                 break;
