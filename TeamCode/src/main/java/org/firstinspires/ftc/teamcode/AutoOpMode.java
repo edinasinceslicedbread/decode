@@ -72,8 +72,8 @@ public class AutoOpMode extends OpMode {
      * velocity. Here we are setting the target, and minimum velocity that the launcher should run
      * at. The minimum velocity is a threshold for determining when to fire.
      */
-    final double LAUNCHER_TARGET_VELOCITY = 1325;
-    final double LAUNCHER_MIN_VELOCITY = 1275;
+    final double LAUNCHER_TARGET_VELOCITY = 1375;
+    final double LAUNCHER_MIN_VELOCITY = 1300;
 
     // Declare OpMode members.
 
