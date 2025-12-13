@@ -61,7 +61,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @Autonomous(name = "Auto Mode shooter coolness", group = "StarterBot")
 //@Disabled
 public class AutoOpModeShooterCoolness extends OpMode {
-    final double FEED_TIME_SECONDS = 1.20; //The feeder servos run this long when a shot is requested.
+    final double FEED_TIME_SECONDS = 3.00; //The feeder servos run this long when a shot is requested.
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
     final double FULL_SPEED = 1.0;
     boolean spinUpTest = false;
@@ -71,17 +71,14 @@ public class AutoOpModeShooterCoolness extends OpMode {
      * velocity. Here we are setting the target, and minimum velocity that the launcher should run
      * at. The minimum velocity is a threshold for determining when to fire.
      */
-    final double LAUNCHER_TARGET_VELOCITY = 1325;
-    final double LAUNCHER_MIN_VELOCITY = 1275;
+    final double LAUNCHER_TARGET_VELOCITY = 1225;
+    final double LAUNCHER_MIN_VELOCITY = 1175;
 
     // Declare OpMode members.
 
     private DcMotorEx launcher = null;
     private CRServo leftFeeder = null;
     private CRServo rightFeeder = null;
-    private Servo scoopServo = null;
-    private CRServo beaterBar = null;
-    private ElapsedTime runtime = new ElapsedTime();
     private DcMotor frontLeftDrive = null;
     private DcMotor backLeftDrive = null;
     private DcMotor frontRightDrive = null;
@@ -89,10 +86,8 @@ public class AutoOpModeShooterCoolness extends OpMode {
     ElapsedTime feederTimer = new ElapsedTime();
     double max;
 
-    boolean scoopSwitch = false;
-    boolean beaterSwitch = false;
-    boolean prevA;
-    boolean prevX;
+    boolean autoTest = false;
+    int onlyOne = 0;
 
     /*
      * TECH TIP: State Machines
@@ -139,8 +134,6 @@ public class AutoOpModeShooterCoolness extends OpMode {
         backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
         frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
         backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
-        scoopServo = hardwareMap.get(Servo.class, "scoopServo");
-        beaterBar = hardwareMap.get(CRServo.class, "beaterBar");
 
         frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
@@ -197,6 +190,7 @@ public class AutoOpModeShooterCoolness extends OpMode {
      */
     @Override
     public void init_loop() {
+        onlyOne = 0;
     }
 
     /*
@@ -212,8 +206,10 @@ public class AutoOpModeShooterCoolness extends OpMode {
      */
     @Override
     public void loop() {
+        if (onlyOne == 0){
         launch (true);
-    }
+        telemetry.addData("Auto Activate?", autoTest);
+    }}
     /*
      * Code to run ONCE after the driver hits STOP
      */
@@ -248,6 +244,7 @@ public class AutoOpModeShooterCoolness extends OpMode {
                     launcher.setPower(STOP_SPEED);
                     leftFeeder.setPower(STOP_SPEED);
                     rightFeeder.setPower(STOP_SPEED);
+                    onlyOne = 1;
                 }
                 break;
         }

@@ -256,31 +256,31 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
          * queuing a shot.
          */
         if(!reverseSwitch){
-        if (gamepad1.back && prevBack) {
+        if (gamepad1.back || gamepad2.back && prevBack) {
         reverseServo = -1;
         reverseSwitch = true;
             }
         }else if (reverseSwitch) {
-            if (gamepad1.back && prevBack) {
+            if (gamepad1.back || gamepad2.back && prevBack) {
                 reverseServo = 1;
                 reverseSwitch = false;
             }
         }
-        prevBack = gamepad1.back;
+        prevBack = gamepad1.back || gamepad2.back;
         /*
          * Now we call our "Launch" function.
          */
-        launch(gamepad1.rightBumperWasPressed());
+        launch(gamepad1.rightBumperWasPressed() || gamepad2.rightBumperWasPressed());
 
         if (!elevatorSwitch) {
-            if (gamepad1.x && !prevX) {
+            if (gamepad1.x || gamepad2.x && !prevX) {
                 elevatorServoTwo.setPower(1 * reverseServo);
                 elevatorServoOne.setPower(1 * reverseServo);
                 beaterBar.setPower(1);
                 elevatorSwitch = true;
             }
         } else if (elevatorSwitch) {
-            if (gamepad1.x && !prevX) {
+            if (gamepad1.x || gamepad2.x && !prevX) {
                 elevatorServoTwo.setPower(0);
                 elevatorServoOne.setPower(0);
                 beaterBar.setPower(0);
@@ -288,8 +288,32 @@ public class goBuildaTeleOpWithMecnumDriveTrain extends OpMode {
             }
         }
 
-            prevX = gamepad1.x;
-
+            prevX = gamepad1.x || gamepad2.x;
+        // I am adding a thing where you click d-pad to small movementds.
+        if (gamepad1.dpad_left) {
+        frontLeftDrive.setPower(0.25);
+        backLeftDrive.setPower(0.25);
+        frontRightDrive.setPower(-0.25);
+        frontRightDrive.setPower(-0.25);
+        }
+        if (gamepad1.dpad_right) {
+            frontLeftDrive.setPower(-0.25);
+            backLeftDrive.setPower(-0.25);
+            frontRightDrive.setPower(0.25);
+            frontRightDrive.setPower(0.25);
+        }
+        if (gamepad1.dpad_up) {
+            frontLeftDrive.setPower(0.25);
+            backLeftDrive.setPower(0.25);
+            frontRightDrive.setPower(0.25);
+            frontRightDrive.setPower(0.25);
+        }
+        if (gamepad1.dpad_down) {
+            frontLeftDrive.setPower(-0.25);
+            backLeftDrive.setPower(-0.25);
+            frontRightDrive.setPower(-0.25);
+            frontRightDrive.setPower(-0.25);
+        }
         /*
          * Show the state and motor powers
          */
