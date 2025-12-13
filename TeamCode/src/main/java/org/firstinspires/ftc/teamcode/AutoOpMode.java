@@ -92,7 +92,7 @@ public class AutoOpMode extends OpMode {
 
     boolean elevatorSwitch = false;
     boolean prevX;
-    
+
     float reverseServo;
     boolean reverseSwitch = false;
 
@@ -142,7 +142,11 @@ public class AutoOpMode extends OpMode {
         backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
         frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
         backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
+        elevatorServoOne = hardwareMap.get(CRServo.class, "elevatorServoOne");
+        elevatorServoTwo = hardwareMap.get(CRServo.class, "elevatorServoTwo");
 
+        elevatorServoOne.setDirection(CRServo.Direction.REVERSE);
+        elevatorServoTwo.setDirection(CRServo.Direction.FORWARD);
         frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         frontRightDrive.setDirection(DcMotor.Direction.REVERSE);
