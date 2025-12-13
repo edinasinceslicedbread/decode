@@ -72,8 +72,8 @@ public class AutoOpMode extends OpMode {
      * velocity. Here we are setting the target, and minimum velocity that the launcher should run
      * at. The minimum velocity is a threshold for determining when to fire.
      */
-    final double LAUNCHER_TARGET_VELOCITY = 1375;
-    final double LAUNCHER_MIN_VELOCITY = 1300;
+    final double LAUNCHER_TARGET_VELOCITY = 1400;
+    final double LAUNCHER_MIN_VELOCITY = 1335;
 
     // Declare OpMode members.
 
@@ -223,7 +223,7 @@ public class AutoOpMode extends OpMode {
 
         switch (launchState) {
             case IDLE:
-                if (feederTimer.seconds() > 1.50) {
+                if (feederTimer.seconds() > 1.25) {
                     backLeftDrive.setPower(0.0);
                     backRightDrive.setPower(0.0);
                     frontLeftDrive.setPower(0.0);
