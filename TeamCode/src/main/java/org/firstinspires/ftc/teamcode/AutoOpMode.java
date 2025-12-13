@@ -259,6 +259,8 @@ public class AutoOpMode extends OpMode {
                     launcher.setPower(STOP_SPEED);
                     leftFeeder.setPower(STOP_SPEED);
                     rightFeeder.setPower(STOP_SPEED);
+                    elevatorServoTwo.setPower(STOP_SPEED);
+                    elevatorServoOne.setPower(STOP_SPEED);
                 }
                 break;
         }
