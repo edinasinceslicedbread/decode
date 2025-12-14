@@ -209,6 +209,7 @@ public class AutoOpMode extends OpMode {
      */
     @Override
     public void start() {
+        feederTimer.reset();
         backLeftDrive.setPower(-0.50);
         backRightDrive.setPower(-0.50);
         frontLeftDrive.setPower(-0.50);
@@ -223,7 +224,7 @@ public class AutoOpMode extends OpMode {
 
         switch (launchState) {
             case IDLE:
-                if (feederTimer.seconds() > 1.25) {
+                if (feederTimer.seconds() > 1.0) {
                     backLeftDrive.setPower(0.0);
                     backRightDrive.setPower(0.0);
                     frontLeftDrive.setPower(0.0);
