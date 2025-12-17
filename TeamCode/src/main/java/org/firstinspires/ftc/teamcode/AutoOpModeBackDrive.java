@@ -40,7 +40,6 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
@@ -58,10 +57,10 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * we will also need to adjust the "PIDF" coefficients with some that are a better fit for our application.
  */
 
-@Autonomous(name = "Auto Mode backwards", group = "StarterBot")
+@Autonomous(name = "Auto Mode Back Drive", group = "StarterBot")
 //@Disabled
-public class AutoOpModeBackwards extends OpMode {
-    final double FEED_TIME_SECONDS = 1.20; //The feeder servos run this long when a shot is requested.
+public class AutoOpModeBackDrive extends OpMode {
+    final double FEED_TIME_SECONDS = 4.0; //The feeder servos run this long when a shot is requested.
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
     final double FULL_SPEED = 1.0;
     boolean spinUpTest = false;
@@ -71,16 +70,16 @@ public class AutoOpModeBackwards extends OpMode {
      * velocity. Here we are setting the target, and minimum velocity that the launcher should run
      * at. The minimum velocity is a threshold for determining when to fire.
      */
-    final double LAUNCHER_TARGET_VELOCITY = 1325;
-    final double LAUNCHER_MIN_VELOCITY = 1275;
+    final double LAUNCHER_TARGET_VELOCITY = 1400;
+    final double LAUNCHER_MIN_VELOCITY = 1335;
 
     // Declare OpMode members.
 
     private DcMotorEx launcher = null;
     private CRServo leftFeeder = null;
     private CRServo rightFeeder = null;
-    private Servo scoopServo = null;
-    private CRServo beaterBar = null;
+    private CRServo elevatorServoOne = null;
+    private CRServo elevatorServoTwo = null;
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor frontLeftDrive = null;
     private DcMotor backLeftDrive = null;
@@ -89,10 +88,11 @@ public class AutoOpModeBackwards extends OpMode {
     ElapsedTime feederTimer = new ElapsedTime();
     double max;
 
-    boolean scoopSwitch = false;
-    boolean beaterSwitch = false;
-    boolean prevA;
+    boolean elevatorSwitch = false;
     boolean prevX;
+
+    float reverseServo;
+    boolean reverseSwitch = false;
 
     /*
      * TECH TIP: State Machines
@@ -112,6 +112,7 @@ public class AutoOpModeBackwards extends OpMode {
      */
     private enum LaunchState {
         IDLE,
+        ELEVATE,
         SPIN_UP,
         LAUNCH,
         LAUNCHING,
@@ -139,9 +140,11 @@ public class AutoOpModeBackwards extends OpMode {
         backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
         frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
         backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
-        scoopServo = hardwareMap.get(Servo.class, "scoopServo");
-        beaterBar = hardwareMap.get(CRServo.class, "beaterBar");
+        elevatorServoOne = hardwareMap.get(CRServo.class, "elevatorServoOne");
+        elevatorServoTwo = hardwareMap.get(CRServo.class, "elevatorServoTwo");
 
+        elevatorServoOne.setDirection(CRServo.Direction.REVERSE);
+        elevatorServoTwo.setDirection(CRServo.Direction.FORWARD);
         frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         frontRightDrive.setDirection(DcMotor.Direction.REVERSE);
@@ -204,10 +207,11 @@ public class AutoOpModeBackwards extends OpMode {
      */
     @Override
     public void start() {
-        backLeftDrive.setPower(-0.25);
-        backRightDrive.setPower(-0.25);
-        frontLeftDrive.setPower(-0.25);
-        frontRightDrive.setPower(-0.25);
+        feederTimer.reset();
+        backLeftDrive.setPower(0.50);
+        backRightDrive.setPower(0.50);
+        frontLeftDrive.setPower(0.50);
+        frontRightDrive.setPower(0.50);
     }
 
     /*
@@ -215,50 +219,44 @@ public class AutoOpModeBackwards extends OpMode {
      */
     @Override
     public void loop() {
-       if (feederTimer.seconds() > 3.0) {
-           backLeftDrive.setPower(0.0);
-           backRightDrive.setPower(0.0);
-           frontLeftDrive.setPower(0.0);
-           frontRightDrive.setPower(0.0);
 
-       }
-    }
-    /*
-     * Code to run ONCE after the driver hits STOP
-     */
-    @Override
-    public void stop() {
-    }
-
-
-    void launch(boolean shotRequested) {
         switch (launchState) {
             case IDLE:
-                if (shotRequested) {
-                    launchState = LaunchState.SPIN_UP;
+                if (feederTimer.seconds() > .67) {
+                    backLeftDrive.setPower(0.0);
+                    backRightDrive.setPower(0.0);
+                    frontLeftDrive.setPower(0.0);
+                    frontRightDrive.setPower(0.0);
+                    launchState = LaunchState.ELEVATE;
                 }
                 break;
+
+            case ELEVATE:
+                launchState = LaunchState.SPIN_UP;
+                break;
+
             case SPIN_UP:
-                launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
-                if (LAUNCHER_MIN_VELOCITY < launcher.getVelocity()) {
-                    launchState = LaunchState.LAUNCH;
-                    spinUpTest = true;
-                }
+               launchState = LaunchState.LAUNCH;
                 break;
+
             case LAUNCH:
-                leftFeeder.setPower(FULL_SPEED);
-                rightFeeder.setPower(FULL_SPEED);
-                feederTimer.reset();
                 launchState = LaunchState.LAUNCHING;
                 break;
+
             case LAUNCHING:
-                if (feederTimer.seconds() > FEED_TIME_SECONDS) {
-                    launchState = LaunchState.IDLE;
-                    launcher.setPower(STOP_SPEED);
-                    leftFeeder.setPower(STOP_SPEED);
-                    rightFeeder.setPower(STOP_SPEED);
-                }
                 break;
         }
+
+        /*
+         * Code to run ONCE after the driver hits STOP
+         */
+
+       // @Override
+        //public void stop() {
+          //  backLeftDrive.setPower(0.0);
+            //backRightDrive.setPower(0.0);
+            //frontLeftDrive.setPower(0.0);
+            //frontRightDrive.setPower(0.0);
+        //}
     }
 }
